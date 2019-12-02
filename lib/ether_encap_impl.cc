@@ -71,20 +71,21 @@ ether_encap_impl::from_wifi(pmt::pmt_t msg) {
 
 	std::memcpy(ehdr->dest, mhdr->addr1, 6);
 	std::memcpy(ehdr->src, mhdr->addr2, 6);
-	ehdr->type = 0x0008;
+	// Look inside LLC for EtherType, following line is skipped
+	//ehdr->type = 0x0008;
 
 	char *frame = (char*)pmt::blob_data(msg);
 
 	// DATA
 	if((((mhdr->frame_control) >> 2) & 63) == 2) {
-		memcpy(buf + sizeof(ethernet_header), frame + 32, data_len - 32);
+		// Ether type is in the last 2 bytes of LLC header
+		memcpy(buf + sizeof(ethernet_header) - 2, frame + 32 - 2, data_len - 32 + 2);
 		pmt::pmt_t payload = pmt::make_blob(buf, data_len - 32 + 14);
 		message_port_pub(pmt::mp("to tap"), pmt::cons(pmt::PMT_NIL, payload));
 
 	// QoS Data
 	} else if((((mhdr->frame_control) >> 2) & 63) == 34) {
-
-		memcpy(buf + sizeof(ethernet_header), frame + 34, data_len - 34);
+		memcpy(buf + sizeof(ethernet_header) - 2, frame + 34 - 2, data_len - 34 + 2);
 		pmt::pmt_t payload = pmt::make_blob(buf, data_len - 34 + 14);
 		message_port_pub(pmt::mp("to tap"), pmt::cons(pmt::PMT_NIL, payload));
 	}
@@ -99,32 +100,37 @@ ether_encap_impl::from_tap(pmt::pmt_t msg) {
 
 	const ethernet_header *ehdr = reinterpret_cast<const ethernet_header*>(data);
 
+	char *buf = static_cast<char*>(malloc(len + 8 - sizeof(ethernet_header)));
+	buf[0] = 0xaa;
+	buf[1] = 0xaa;
+	buf[2] = 0x03;
+	buf[3] = 0x00;
+	buf[4] = 0x00;
+	buf[5] = 0x00;
+
 	switch(ehdr->type) {
 	case 0x0008: {
 		std::cout << "ether type: IP" << std::endl;
-
-		char *buf = static_cast<char*>(malloc(len + 8 - sizeof(ethernet_header)));
-		buf[0] = 0xaa;
-		buf[1] = 0xaa;
-		buf[2] = 0x03;
-		buf[3] = 0x00;
-		buf[4] = 0x00;
-		buf[5] = 0x00;
 		buf[6] = 0x08;
 		buf[7] = 0x00;
-		std::memcpy(buf + 8, data + sizeof(ethernet_header), len - sizeof(ethernet_header));
-		pmt::pmt_t blob = pmt::make_blob(buf, len + 8 - sizeof(ethernet_header));
-		message_port_pub(pmt::mp("to wifi"), pmt::cons(pmt::PMT_NIL, blob));
 		break;
 	}
-	case 0x0608:
+	case 0x0608: {
 		std::cout << "ether type: ARP " << std::endl;
+		buf[6] = 0x08;
+		buf[7] = 0x06;
 		break;
+	}
 	default:
 		std::cout << "unknown ether type" << std::endl;
-		break;
+		free(buf);
+		return;
 	}
 
+	std::memcpy(buf + 8, data + sizeof(ethernet_header), len - sizeof(ethernet_header));
+	pmt::pmt_t blob = pmt::make_blob(buf, len + 8 - sizeof(ethernet_header));
+	message_port_pub(pmt::mp("to wifi"), pmt::cons(pmt::PMT_NIL, blob));
+	free(buf);
 }
 
 ether_encap::sptr
