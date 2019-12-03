@@ -22,12 +22,6 @@
 namespace gr {
 namespace ieee802_11 {
 
-	struct ethernet_header {
-		uint8_t   dest[6];
-		uint8_t   src[6];
-		uint16_t  type;
-	}__attribute__((packed));
-
 	class ether_encap_impl : public ether_encap {
 
 		public:

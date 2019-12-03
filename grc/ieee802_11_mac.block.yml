@@ -8,11 +8,11 @@ parameters:
 -   id: src_mac
     label: SRC MAC
     dtype: int_vector
-    default: '[0x23, 0x23, 0x23, 0x23, 0x23, 0x23]'
+    default: '[]'
 -   id: dst_mac
     label: DST MAC
     dtype: int_vector
-    default: '[0x42, 0x42, 0x42, 0x42, 0x42, 0x42]'
+    default: '[]'
 -   id: bss_mac
     label: BSS MAC
     dtype: int_vector
@@ -34,8 +34,8 @@ outputs:
     id: phy out
     optional: true
 asserts:
-- ${ len(src_mac) == 6 }
-- ${ len(dst_mac) == 6 }
+- ${ len(src_mac) == 6 or len(src_mac) == 0 }
+- ${ len(dst_mac) == 6 or len(dst_mac) == 0 }
 - ${ len(bss_mac) == 6 }
 - ${ all([x >= 0 and 255 >= x for x in src_mac]) }
 - ${ all([x >= 0 and 255 >= x for x in dst_mac]) }

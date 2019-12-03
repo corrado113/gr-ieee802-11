@@ -53,13 +53,20 @@ mac_impl(std::vector<uint8_t> src_mac, std::vector<uint8_t> dst_mac, std::vector
 	message_port_register_in(pmt::mp("phy in"));
 	set_msg_handler(pmt::mp("phy in"), boost::bind(&mac_impl::phy_in, this, _1));
 
-	if(!check_mac(src_mac)) throw std::invalid_argument("wrong mac address size");
-	if(!check_mac(dst_mac)) throw std::invalid_argument("wrong mac address size");
+	if(empty_mac(src_mac) && empty_mac(dst_mac)) {
+		use_existing_mac_addresses = true;
+	} else {
+		use_existing_mac_addresses = false;
+		if(!check_mac(src_mac)) throw std::invalid_argument("wrong mac address size");
+		if(!check_mac(dst_mac)) throw std::invalid_argument("wrong mac address size");
+	}
 	if(!check_mac(bss_mac)) throw std::invalid_argument("wrong mac address size");
 
 	for(int i = 0; i < 6; i++) {
-		d_src_mac[i] = src_mac[i];
-		d_dst_mac[i] = dst_mac[i];
+		if(!use_existing_mac_addresses) {
+			d_src_mac[i] = src_mac[i];
+			d_dst_mac[i] = dst_mac[i];
+		}
 		d_bss_mac[i] = bss_mac[i];
 	}
 }
@@ -83,19 +90,19 @@ void phy_in (pmt::pmt_t msg) {
 void app_in (pmt::pmt_t msg) {
 
 	size_t       msg_len;
-	const char   *msdu;
+	const char   *mpdu; 	//802.3 MAC
 	std::string  str;
 
 	if(pmt::is_symbol(msg)) {
 
 		str = pmt::symbol_to_string(msg);
 		msg_len = str.length();
-		msdu = str.data();
+		mpdu = str.data();
 
 	} else if(pmt::is_pair(msg)) {
 
 		msg_len = pmt::blob_length(pmt::cdr(msg));
-		msdu = reinterpret_cast<const char *>(pmt::blob_data(pmt::cdr(msg)));
+		mpdu = reinterpret_cast<const char *>(pmt::blob_data(pmt::cdr(msg)));
 
 	} else {
 		throw std::invalid_argument("MAC expects PDUs or strings");
@@ -108,7 +115,7 @@ void app_in (pmt::pmt_t msg) {
 
 	// make MAC frame
 	int    psdu_length;
-	generate_mac_data_frame(msdu, msg_len, &psdu_length);
+	generate_mac_data_frame(mpdu, msg_len, &psdu_length);
 
 	// dict
 	pmt::pmt_t dict = pmt::make_dict();
@@ -121,17 +128,24 @@ void app_in (pmt::pmt_t msg) {
 	message_port_pub(pmt::mp("phy out"), pmt::cons(dict, mac));
 }
 
-void generate_mac_data_frame(const char *msdu, int msdu_size, int *psdu_size) {
+void generate_mac_data_frame(const char *mpdu, int mpdu_size, int *psdu_size) {
 
 	// mac header
 	mac_header header;
 	header.frame_control = 0x0008;
 	header.duration = 0x0000;
 
-	for(int i = 0; i < 6; i++) {
-		header.addr1[i] = d_dst_mac[i];
-		header.addr2[i] = d_src_mac[i];
-		header.addr3[i] = d_bss_mac[i];
+	if(use_existing_mac_addresses){
+		const ethernet_header *ehdr = reinterpret_cast<const ethernet_header*>(mpdu);
+		std::memcpy(header.addr1, ehdr->dest, 6);
+		std::memcpy(header.addr2, ehdr->src, 6);
+		std::memcpy(header.addr3, d_bss_mac, 6);
+	} else {
+		for(int i = 0; i < 6; i++) {
+			header.addr1[i] = d_dst_mac[i];
+			header.addr2[i] = d_src_mac[i];
+			header.addr3[i] = d_bss_mac[i];
+		}
 	}
 
 	header.seq_nr = 0;
@@ -142,6 +156,11 @@ void generate_mac_data_frame(const char *msdu, int msdu_size, int *psdu_size) {
 	}
 	header.seq_nr = htole16(header.seq_nr);
 	d_seq_nr++;
+
+	//802.11 mpdu is made replacing MAC header from 802.3 mpdu with 802.11 MAC header
+	//802.11 msdu is 802.3 mpdu minus its MAC header
+	const char *msdu = mpdu + sizeof(ethernet_header);
+	int msdu_size = mpdu_size - sizeof(ethernet_header);
 
 	//header size is 24, plus 4 for FCS means 28 bytes
 	*psdu_size = 28 + msdu_size;
@@ -163,12 +182,18 @@ bool check_mac(std::vector<uint8_t> mac) {
 	return true;
 }
 
+bool empty_mac(std::vector<uint8_t> mac) {
+	if(mac.size() == 0) return true;
+	return false;
+}
+
 private:
 	uint16_t d_seq_nr;
 	uint8_t d_src_mac[6];
 	uint8_t d_dst_mac[6];
 	uint8_t d_bss_mac[6];
 	uint8_t d_psdu[MAX_PSDU_SIZE];
+	bool use_existing_mac_addresses;
 };
 
 mac::sptr

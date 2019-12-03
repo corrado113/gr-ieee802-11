@@ -100,37 +100,45 @@ ether_encap_impl::from_tap(pmt::pmt_t msg) {
 
 	const ethernet_header *ehdr = reinterpret_cast<const ethernet_header*>(data);
 
-	char *buf = static_cast<char*>(malloc(len + 8 - sizeof(ethernet_header)));
-	buf[0] = 0xaa;
-	buf[1] = 0xaa;
-	buf[2] = 0x03;
-	buf[3] = 0x00;
-	buf[4] = 0x00;
-	buf[5] = 0x00;
+	char *buf = static_cast<char*>(malloc(len + 8));
+	char *llc = static_cast<char*>(malloc(8));
+	llc[0] = 0xaa;
+	llc[1] = 0xaa;
+	llc[2] = 0x03;
+	llc[3] = 0x00;
+	llc[4] = 0x00;
+	llc[5] = 0x00;
 
 	switch(ehdr->type) {
 	case 0x0008: {
 		std::cout << "ether type: IP" << std::endl;
-		buf[6] = 0x08;
-		buf[7] = 0x00;
+		llc[6] = 0x08;
+		llc[7] = 0x00;
 		break;
 	}
 	case 0x0608: {
 		std::cout << "ether type: ARP " << std::endl;
-		buf[6] = 0x08;
-		buf[7] = 0x06;
+		llc[6] = 0x08;
+		llc[7] = 0x06;
 		break;
 	}
 	default:
 		std::cout << "unknown ether type" << std::endl;
 		free(buf);
+		free(llc);
 		return;
 	}
 
-	std::memcpy(buf + 8, data + sizeof(ethernet_header), len - sizeof(ethernet_header));
-	pmt::pmt_t blob = pmt::make_blob(buf, len + 8 - sizeof(ethernet_header));
+	//copy Ethernet header
+	std::memcpy(buf, data, sizeof(ethernet_header));
+	//then LLC header
+	std::memcpy(buf + sizeof(ethernet_header), llc, 8);
+	//finally the sdu
+	std::memcpy(buf + sizeof(ethernet_header) + 8, data + sizeof(ethernet_header), len - sizeof(ethernet_header));
+	pmt::pmt_t blob = pmt::make_blob(buf, len + 8);
 	message_port_pub(pmt::mp("to wifi"), pmt::cons(pmt::PMT_NIL, blob));
 	free(buf);
+	free(llc);
 }
 
 ether_encap::sptr

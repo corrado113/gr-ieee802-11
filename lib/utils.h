@@ -41,6 +41,12 @@ struct mac_header {
 	uint16_t seq_nr;
 }__attribute__((packed));
 
+struct ethernet_header {
+	uint8_t   dest[6];
+	uint8_t   src[6];
+	uint16_t  type;
+}__attribute__((packed));
+
 /**
  * WIFI parameters
  */
