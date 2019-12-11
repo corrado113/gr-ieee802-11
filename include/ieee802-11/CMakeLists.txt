@@ -29,11 +29,11 @@ list(APPEND include_sources
     mac.h
     mapper.h
     parse_mac.h
+    ofdm_carrier_allocator_cvc.h
     signal_field.h
     sync_long.h
     sync_short.h
 )
-
 install(
     FILES ${include_sources}
     DESTINATION ${GR_INCLUDE_DIR}/gnuradio/ieee802_11

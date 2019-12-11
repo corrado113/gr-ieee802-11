@@ -31,6 +31,7 @@
 #include "ieee802-11/frame_equalizer.h"
 #include "ieee802-11/mac.h"
 #include "ieee802-11/mapper.h"
+#include "ieee802-11/ofdm_carrier_allocator_cvc.h"
 #include "ieee802-11/parse_mac.h"
 #include "ieee802-11/signal_field.h"
 #include "ieee802-11/sync_long.h"
@@ -51,6 +52,7 @@
 %include "ieee802-11/frame_equalizer.h"
 %include "ieee802-11/mac.h"
 %include "ieee802-11/mapper.h"
+%include "ieee802-11/ofdm_carrier_allocator_cvc.h"
 %include "ieee802-11/parse_mac.h"
 %include "ieee802-11/signal_field.h"
 %include "ieee802-11/sync_long.h"
@@ -62,6 +64,7 @@ GR_SWIG_BLOCK_MAGIC2(ieee802_11, ether_encap);
 GR_SWIG_BLOCK_MAGIC2(ieee802_11, frame_equalizer);
 GR_SWIG_BLOCK_MAGIC2(ieee802_11, mac);
 GR_SWIG_BLOCK_MAGIC2(ieee802_11, mapper);
+GR_SWIG_BLOCK_MAGIC2(ieee802_11, ofdm_carrier_allocator_cvc);
 GR_SWIG_BLOCK_MAGIC2(ieee802_11, parse_mac);
 GR_SWIG_BLOCK_MAGIC2(ieee802_11, sync_long);
 GR_SWIG_BLOCK_MAGIC2(ieee802_11, sync_short);

@@ -43,6 +43,7 @@ list(APPEND ieee802_11_sources
     frame_equalizer_impl.cc
     mac.cc
     mapper.cc
+    ofdm_carrier_allocator_cvc_impl.cc
     parse_mac.cc
     signal_field_impl.cc
     sync_long.cc
@@ -67,7 +68,6 @@ if(NOT ieee802_11_sources)
     MESSAGE(STATUS "No C++ sources... skipping lib/")
     return()
 endif(NOT ieee802_11_sources)
-
 add_library(gnuradio-ieee802_11 SHARED ${ieee802_11_sources})
 target_link_libraries(gnuradio-ieee802_11
         gnuradio::gnuradio-runtime
