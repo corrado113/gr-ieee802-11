@@ -117,13 +117,19 @@ ether_encap_impl::from_tap(pmt::pmt_t msg) {
 		break;
 	}
 	case 0x0608: {
-		std::cout << "ether type: ARP " << std::endl;
+		std::cout << "ether type: ARP" << std::endl;
 		llc[6] = 0x08;
 		llc[7] = 0x06;
 		break;
 	}
+	case 0xdd86: {
+		std::cout << "ether type: IPv6" << std::endl;
+		llc[6] = 0x86;
+		llc[7] = 0xdd;
+		break;
+	}
 	default:
-		std::cout << "unknown ether type" << std::endl;
+		std::cout << "unknown ether type: " << std::hex << ehdr->type << " (host byte order)" << std::endl;
 		free(buf);
 		free(llc);
 		return;
