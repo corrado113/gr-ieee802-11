@@ -276,8 +276,8 @@ blocks:
     coordinate: [504, 204]
     rotation: 0
     state: enabled
-- name: digital_ofdm_carrier_allocator_cvc_0_0_0
-  id: digital_ofdm_carrier_allocator_cvc
+- name: ieee802_11_ofdm_carrier_allocator_cvc_0
+  id: ieee802_11_ofdm_carrier_allocator_cvc
   parameters:
     affinity: ''
     alias: ''
@@ -486,7 +486,7 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    debug: 'True'
+    debug: 'False'
     encoding: encoding
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -632,9 +632,9 @@ connections:
 - [blocks_moving_average_xx_1, '0', blocks_divide_xx_0, '1']
 - [blocks_multiply_xx_0, '0', blocks_moving_average_xx_0, '0']
 - [blocks_stream_to_vector_0, '0', fft_vxx_0_1, '0']
-- [blocks_tagged_stream_mux_0, '0', digital_ofdm_carrier_allocator_cvc_0_0_0, '0']
+- [blocks_tagged_stream_mux_0, '0', ieee802_11_ofdm_carrier_allocator_cvc_0, '0']
 - [digital_chunks_to_symbols_xx_0, '0', blocks_tagged_stream_mux_0, '0']
-- [digital_ofdm_carrier_allocator_cvc_0_0_0, '0', fft_vxx_0_0, '0']
+- [ieee802_11_ofdm_carrier_allocator_cvc_0, '0', fft_vxx_0_0, '0']
 - [digital_ofdm_cyclic_prefixer_0_0, '0', pad_sink_0, '0']
 - [digital_packet_headergenerator_bb_0, '0', digital_chunks_to_symbols_xx_0, '0']
 - [fft_vxx_0_0, '0', digital_ofdm_cyclic_prefixer_0_0, '0']
