@@ -1226,7 +1226,18 @@ blocks:
     coordinate: [664, 504]
     rotation: 180
     state: enabled
-
+- name: xmlrpc_server_0
+  id: xmlrpc_server
+  parameters:
+    addr: 0.0.0.0
+    alias: ''
+    comment ''
+    port: '8086'
+  states:
+    coordinate: [1094, 312]
+    rotation: 0
+    state: enabled
+    
 connections:
 - [blocks_multiply_const_vxx_0, '0', foo_packet_pad2_0, '0']
 - [blocks_pdu_to_tagged_stream_0_0, '0', qtgui_const_sink_x_0, '0']
