@@ -397,7 +397,7 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    debug: 'True'
+    debug: 'False'
     log: 'False'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -1253,7 +1253,7 @@ blocks:
   parameters:
     addr: 0.0.0.0
     alias: ''
-    comment ''
+    comment: ''
     port: '8086'
   states:
     coordinate: [1094, 312]
