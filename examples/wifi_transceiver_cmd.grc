@@ -701,7 +701,7 @@ blocks:
     clock_source6: ''
     clock_source7: ''
     comment: ''
-    dev_addr: ''
+    dev_addr: usrp_addr
     dev_args: '""'
     gain0: tx_gain
     gain1: '0'
@@ -1006,7 +1006,7 @@ blocks:
     dc_offs_enb7: '""'
     dc_offs_enb8: '""'
     dc_offs_enb9: '""'
-    dev_addr: ''
+    dev_addr: usrp_addr
     dev_args: '""'
     gain0: rx_gain
     gain1: '0'
@@ -1231,6 +1231,19 @@ blocks:
     coordinate: [816, 744]
     rotation: 0
     state: enabled
+- name: usrp_addr
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    label: USRP address
+    short_id: ''
+    type: str
+    value: '""'
+  states:
+    coordinate: [970, 510]
+    rotation: 0
+    state: true
 - name: wifi_phy_hier_0
   id: wifi_phy_hier
   parameters:
