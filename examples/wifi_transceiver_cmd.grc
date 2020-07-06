@@ -558,16 +558,38 @@ blocks:
       print(\"Port:\", portnum)\n\nf = open(\"/tmp/802_bsr.csv\", 'w')\nf.write(\"\
       time,buffer_state\\n\")\n\ndef bsr_thread(f, interval):\n\tfrom gnuradio.ctrlport.GNURadioControlPortClient\
       \ import GNURadioControlPortClient\n\tradiosys = GNURadioControlPortClient(hostname,\
-      \ portnum)\n\tradio = radiosys.client\n\tprint(radio)\n\tprint(f)\n\tprint(interval)\n\
-      \tt=0\n\twhile True:\n\t\tf.write(str(round(t,2))+\",\"+str(radio.getKnobs(['ofdm_cyclic_prefixer0::input\
+      \ portnum)\n\tradio = radiosys.client\n\n\tt=0\n\twhile not stop_module.stop_flag.is_set():\n\
+      \t\tf.write(str(round(t,2))+\",\"+str(radio.getKnobs(['ofdm_cyclic_prefixer0::input\
       \ % full'])['ofdm_cyclic_prefixer0::input % full'].value[0])+\"\\n\")\n\t\t\
-      f.flush()\n\t\tt += interval\n\t\ttime.sleep(interval)\n\nimport threading\n\
-      th = threading.Thread(target=bsr_thread, args=(f, interval))\nth.start()"
+      f.flush()\n\t\tt += interval\n\t\ttime.sleep(interval)\n\tf.close()\n\nimport\
+      \ threading\nth = threading.Thread(target=bsr_thread, args=(f, interval))\n\
+      th.start()"
     section: main_after_start
   states:
     coordinate: [1094, 468]
     rotation: 0
     state: enabled
+- name: snippet_2
+  id: snippet
+  parameters:
+    code: stop_module.stop_flag.set()
+    section: main_after_stop
+  states:
+    coordinate: [1094, 534]
+    rotation: 0
+    state: true
+- name: stop_module
+  id: epy_module
+  parameters:
+    source_code: 'import threading
+
+      stop_flag = threading.Event()
+
+      '
+  states:
+    coordinate: [1216, 330]
+    rotation: 0
+    state: true
 - name: uhd_usrp_sink_0
   id: uhd_usrp_sink
   parameters:
