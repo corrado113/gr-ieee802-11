@@ -21,12 +21,19 @@
 
 #include <boost/crc.hpp>
 #include <gnuradio/io_signature.h>
+#include <chrono>
+#include <fstream>
+#include <iostream>
 
 using namespace gr::ieee802_11;
 
 #define LINKTYPE_IEEE802_11 105 /* http://www.tcpdump.org/linktypes.html */
 
 class decode_mac_impl : public decode_mac {
+
+~decode_mac_impl() {
+	log_bler.close();
+}
 
 public:
 decode_mac_impl(bool log, bool debug) :
@@ -43,6 +50,10 @@ decode_mac_impl(bool log, bool debug) :
 	d_frame_complete(true) {
 
 	message_port_register_out(pmt::mp("out"));
+
+	start_time = std::chrono::high_resolution_clock::now();
+	log_bler.open("/tmp/802_bler.csv", std::fstream::out | std::fstream::trunc);
+	log_bler << "time,bler" << std::endl;
 }
 
 int general_work (int noutput_items, gr_vector_int& ninput_items,
@@ -133,10 +144,17 @@ void decode() {
 	// skip service field
 	boost::crc_32_type result;
 	result.process_bytes(out_bytes + 2, d_frame.psdu_size);
+
+	std::chrono::duration<double, std::milli> time_span = std::chrono::high_resolution_clock::now() - start_time;
+	log_bler << std::fixed << std::setprecision(6) << time_span.count()/1000 << ",";
+
 	if(result.checksum() != 558161692) {
 		dout << "checksum wrong -- dropping" << std::endl;
+		log_bler << false << std::endl;
 		return;
 	}
+
+	log_bler << true << std::endl;
 
 	mylog(boost::format("encoding: %1% - length: %2% - symbols: %3%")
 			% d_ofdm.encoding % d_frame.psdu_size % d_frame.n_sym);
@@ -239,6 +257,9 @@ private:
 
 	int copied;
 	bool d_frame_complete;
+
+	std::fstream log_bler;
+	std::chrono::high_resolution_clock::time_point start_time;
 };
 
 decode_mac::sptr
