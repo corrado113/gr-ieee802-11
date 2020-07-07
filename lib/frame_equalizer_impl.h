@@ -22,6 +22,9 @@
 #include <ieee802-11/constellations.h>
 #include "equalizer/base.h"
 #include "viterbi_decoder/viterbi_decoder.h"
+#include <chrono>
+#include <fstream>
+#include <iostream>
 
 namespace gr {
 namespace ieee802_11 {
@@ -80,6 +83,9 @@ private:
 	constellation_64qam::sptr d_64qam;
 
 	static const int interleaver_pattern[48];
+
+	std::fstream log_snr;
+	std::chrono::high_resolution_clock::time_point start_time;
 };
 
 } // namespace ieee802_11

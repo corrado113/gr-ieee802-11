@@ -23,6 +23,9 @@
 #include "equalizer/sta.h"
 #include "utils.h"
 #include <gnuradio/io_signature.h>
+#include <chrono>
+#include <fstream>
+#include <iostream>
 
 namespace gr {
 namespace ieee802_11 {
@@ -53,9 +56,14 @@ frame_equalizer_impl::frame_equalizer_impl(Equalizer algo, double freq, double b
 
 	set_tag_propagation_policy(block::TPP_DONT);
 	set_algorithm(algo);
+
+	start_time = std::chrono::high_resolution_clock::now();
+	log_snr.open("/tmp/802_snr.csv", std::fstream::out | std::fstream::trunc);
+	log_snr << "time,snr" << std::endl;
 }
 
 frame_equalizer_impl::~frame_equalizer_impl() {
+	log_snr.close();
 }
 
 
@@ -209,16 +217,20 @@ frame_equalizer_impl::general_work (int noutput_items,
 
 			if(decode_signal_field(out + o * 48)) {
 
+				double snr = d_equalizer->get_snr();
 				pmt::pmt_t dict = pmt::make_dict();
 				dict = pmt::dict_add(dict, pmt::mp("frame_bytes"), pmt::from_uint64(d_frame_bytes));
 				dict = pmt::dict_add(dict, pmt::mp("encoding"), pmt::from_uint64(d_frame_encoding));
-				dict = pmt::dict_add(dict, pmt::mp("snr"), pmt::from_double(d_equalizer->get_snr()));
+				dict = pmt::dict_add(dict, pmt::mp("snr"), pmt::from_double(snr));
 				dict = pmt::dict_add(dict, pmt::mp("freq"), pmt::from_double(d_freq));
 				dict = pmt::dict_add(dict, pmt::mp("freq_offset"), pmt::from_double(d_freq_offset_from_synclong));
 				add_item_tag(0, nitems_written(0) + o,
 						pmt::string_to_symbol("wifi_start"),
 						dict,
 						pmt::string_to_symbol(alias()));
+
+			std::chrono::duration<double, std::milli> time_span = std::chrono::high_resolution_clock::now() - start_time;
+			log_snr << std::fixed << std::setprecision(6) << time_span.count()/1000 << "," << std::setprecision(4) << snr << std::endl;
 			}
 		}
 
