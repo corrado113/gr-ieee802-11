@@ -183,6 +183,34 @@ blocks:
     coordinate: [176, 12.0]
     rotation: 0
     state: disabled
+- name: pad_front
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: intx
+    value: '10000'
+  states:
+    coordinate: [1012, 602]
+    rotation: 0
+    state: true
+- name: pad_tail
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: intx
+    value: '10000'
+  states:
+    coordinate: [1102, 602]
+    rotatiom: 0
+    state: true
 - name: rx_gain
   id: variable_qtgui_range
   parameters:
@@ -329,8 +357,8 @@ blocks:
     delay_sec: '0.001'
     maxoutbuf: '0'
     minoutbuf: '100000'
-    pad_front: '10000'
-    pad_tail: '10000'
+    pad_front: pad_front
+    pad_tail: pad_tail
   states:
     coordinate: [424, 752]
     rotation: 0
